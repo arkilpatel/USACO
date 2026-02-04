@@ -11,7 +11,7 @@ __pycache__/
 results/
 
 logs/
-*sandbox*
+*_sandbox_*/
 
 **.slurm
 **.sh
