@@ -16,7 +16,7 @@ from USACOBench.evaluation.result_type import ResultType
 Result = Dict[str, str]
 
 # Path to USACO test cases
-_REPO_ROOT = '/home/mila/a/arkil.patel/USACO'
+_REPO_ROOT = os.environ.get('USACO_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 _USACO_DATA_DIR = os.path.join(_REPO_ROOT, 'data', 'datasets', 'usaco_v3', 'tests')
 
 USACO_TEST_IN_PATH = os.path.join(_USACO_DATA_DIR, '{}', '{}.in')

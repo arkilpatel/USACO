@@ -12,8 +12,8 @@ import signal
 import tempfile
 import dill
 
-# Sandbox directory
-_REPO_ROOT = '/home/mila/a/arkil.patel/USACO'
+# Sandbox directory - use environment variable, or fall back to repo-relative path
+_REPO_ROOT = os.environ.get('USACO_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 _SANDBOX_DIR = os.path.join(_REPO_ROOT, 'usaco_sandbox')
 
 # Create sandbox directory if it doesn't exist

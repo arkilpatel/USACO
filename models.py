@@ -1,9 +1,11 @@
 import os
 import openai
 import asyncio
-from openai import AsyncOpenAI
-from typing import List, Dict, Union, Any, Tuple
+from openai import AsyncOpenAI, OpenAI
+from typing import List, Dict, Union, Any, Tuple, Callable, Iterator
 from tqdm.asyncio import tqdm_asyncio
+from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import anthropic
 import backoff
 
@@ -194,6 +196,7 @@ def start_vllm_server(
     trust_remote_code: bool = True,
     wait_for_ready: bool = True,
     timeout: int = 900,
+    log_dir: str = None,
     **kwargs,
 ) -> subprocess.Popen:
     """
@@ -259,13 +262,17 @@ def start_vllm_server(
     # Create logs directory if it doesn't exist
     from pathlib import Path
     from datetime import datetime
-    logs_dir = Path(__file__).parent / 'logs'
+
+    if log_dir is not None:
+        # Use provided log directory
+        logs_dir = Path(log_dir)
+    else:
+        # Fall back to default logs directory
+        logs_dir = Path(__file__).parent / 'logs'
     logs_dir.mkdir(parents=True, exist_ok=True)
 
     # Create log file for vLLM server output
-    timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-    safe_model_name = model.replace('/', '_').replace('\\', '_')
-    vllm_log_path = logs_dir / f"vllm_server_{safe_model_name}_{timestamp_str}.log"
+    vllm_log_path = logs_dir / "vllm_server.log"
     vllm_log_file = open(vllm_log_path, 'w')
 
     print(f"vLLM server logs will be written to: {vllm_log_path}")
@@ -679,4 +686,120 @@ def together(
                 texts.append("")
 
     return texts
-    
+
+
+####################################################################################################
+# Together AI Streaming Backend (Parallel generation with per-result callbacks)
+####################################################################################################
+
+def _generate_single_together(
+    idx: int,
+    prompt: str,
+    client: OpenAI,
+    model: str,
+    temperature: float,
+    max_tokens: int,
+    system_prompt: str = None,
+) -> Tuple[int, str]:
+    """
+    Generate a single response from Together AI API (synchronous, for use in ThreadPoolExecutor).
+    Returns (index, response_text) tuple to maintain ordering.
+    """
+    if system_prompt is not None:
+        messages = [
+            {'role': 'system', 'content': system_prompt},
+            {'role': 'user', 'content': prompt}
+        ]
+    else:
+        messages = [{'role': 'user', 'content': prompt}]
+
+    # Retry with exponential backoff on rate limit errors
+    max_retries = 10
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+            if response and response.choices:
+                return (idx, response.choices[0].message.content)
+            return (idx, "")
+        except openai.RateLimitError as e:
+            if attempt < max_retries - 1:
+                import time
+                wait_time = (2 ** attempt) + 1  # Exponential backoff
+                time.sleep(wait_time)
+            else:
+                raise e
+        except Exception as e:
+            # For other errors, return empty string with error info
+            return (idx, f"[ERROR: {str(e)}]")
+
+
+def together_streaming(
+    prompts: List[str],
+    model: str = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+    temperature: float = 0.6,
+    max_tokens: int = 28000,
+    system_prompt: str = None,
+    num_workers: int = 8,
+    on_result: Callable[[int, str, str], None] = None,
+    verbose: bool = False,
+) -> List[str]:
+    """
+    Generate responses using Together AI API with parallel workers.
+    Results are yielded as they complete (not in order) via the on_result callback.
+
+    Args:
+        prompts: List of prompt strings
+        model: Model name on Together AI
+        temperature: Sampling temperature
+        max_tokens: Maximum tokens to generate
+        system_prompt: Optional system prompt (auto-set for Ministral models)
+        num_workers: Number of parallel worker threads
+        on_result: Callback function(idx, prompt, response) called as each result completes
+        verbose: Whether to show progress bar
+
+    Returns:
+        List of response strings (in original order)
+    """
+    api_key = os.getenv("TOGNAME")
+    if not api_key:
+        raise ValueError("Missing Together AI API key. Set TOGNAME environment variable.")
+
+    client = OpenAI(api_key=api_key, base_url="https://api.together.xyz/v1")
+
+    # Auto-detect Ministral models and use special system prompt
+    if system_prompt is None and "ministral" in model.lower():
+        print("Using Ministral system prompt.")
+        system_prompt = MINISTRAL_SYSTEM_PROMPT
+
+    # Results storage (indexed to maintain order)
+    results = [""] * len(prompts)
+
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        # Submit all generation tasks
+        future_to_idx = {
+            executor.submit(
+                _generate_single_together,
+                idx, prompt, client, model, temperature, max_tokens, system_prompt
+            ): idx
+            for idx, prompt in enumerate(prompts)
+        }
+
+        # Process completed generations as they finish
+        pbar = tqdm(total=len(prompts), desc="Generating", disable=not verbose)
+        for future in as_completed(future_to_idx):
+            idx, response = future.result()
+            results[idx] = response
+
+            # Call the callback with the result
+            if on_result is not None:
+                on_result(idx, prompts[idx], response)
+
+            pbar.update(1)
+        pbar.close()
+
+    return results

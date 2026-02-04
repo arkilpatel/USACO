@@ -37,6 +37,7 @@ parser.add_argument('-a', '--attempts', help='number of attempts', default=1)
 parser.add_argument('-n', '--num_reflexion', help='number of reflexion iterations', default=2)
 parser.add_argument('--streaming', action='store_true', help='Use streaming evaluation (judges as generation completes, logs to logs/)')
 parser.add_argument('--judge-workers', type=int, default=8, help='Number of parallel judge workers for streaming mode (default: 8)')
+parser.add_argument('--llm-workers', type=int, default=1, help='Number of parallel LLM workers for streaming mode with Together backend (default: 1)')
 # vLLM-specific arguments
 parser.add_argument('--port', type=int, default=8000, help='Port for vLLM server (default: 8000)')
 parser.add_argument('--base-url', type=str, default='http://localhost', help='Base URL for vLLM local server (default: http://localhost)')
@@ -47,6 +48,8 @@ parser.add_argument('--max-model-len', type=int, default=32000, help='Maximum se
 # Generation parameters
 parser.add_argument('--temperature', type=float, default=0.6, help='Temperature for generation (default: 0.6)')
 parser.add_argument('--max-tokens', type=int, default=28000, help='Max new tokens for generation (default: 28000)')
+# Problem filtering
+parser.add_argument('--expert-passed', action='store_true', help='Only evaluate on problems that expert model passed (loads from data/expert_passed_problems.json)')
 args = parser.parse_args()
 
 model_name = args.model_name
@@ -84,6 +87,15 @@ else:
 print(f"Using backend: {backend}")
 print(f"Model: {model_name}")
 
+# Create log directory for this run (used by both vLLM server and streaming evaluation)
+from datetime import datetime
+from pathlib import Path
+timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+safe_model_name = model_name.replace('/', '_').replace('\\', '_')
+run_log_dir = Path(__file__).parent / 'logs' / f"{safe_model_name}_{timestamp_str}"
+run_log_dir.mkdir(parents=True, exist_ok=True)
+print(f"Run log directory: {run_log_dir}")
+
 # Start local vLLM server if requested
 vllm_process = None
 if args.serve:
@@ -96,15 +108,40 @@ if args.serve:
             tensor_parallel_size=args.tensor_parallel_size,
             gpu_memory_utilization=args.gpu_memory_utilization,
             max_model_len=args.max_model_len,
+            log_dir=str(run_log_dir),
         )
 
 problem_dict = load_problem_dict('usaco_subset307')
+
+# Filter to expert-passed problems if requested
+if args.expert_passed:
+    import json
+    import os
+    expert_data_path = os.path.join(os.path.dirname(__file__), 'data', 'expert_passed_problems.json')
+    if not os.path.exists(expert_data_path):
+        print(f"ERROR: Expert passed problems file not found: {expert_data_path}")
+        print("Please run: python extract_expert_passed.py path/to/results.csv")
+        exit(1)
+    with open(expert_data_path, 'r') as f:
+        expert_passed_ids = set(json.load(f).keys())
+    original_count = len(problem_dict)
+    problem_dict = {pid: prob for pid, prob in problem_dict.items() if pid in expert_passed_ids}
+    print(f"Filtered to {len(problem_dict)}/{original_count} expert-passed problems")
+
 model_fn = partial(model_fn, model=model_name)
 
 # A little redundant but it does the job and it's readable...
 if not args.episodic_retrieval and not args.semantic_retrieval and not args.reflexion:
     if args.streaming:
-        rdict, sdict, rs, ss = run_solve_streaming(model_fn, model_name, problem_dict, args.attempts, n_judge_workers=args.judge_workers)
+        rdict, sdict, rs, ss = run_solve_streaming(
+            model_fn, model_name, problem_dict, args.attempts,
+            n_judge_workers=args.judge_workers,
+            n_llm_workers=args.llm_workers,
+            backend=backend,
+            temperature=args.temperature,
+            max_tokens=args.max_tokens,
+            log_dir=str(run_log_dir),
+        )
     else:
         rdict, sdict, rs, ss = run_solve(model_fn, model_name, problem_dict, args.attempts)
 

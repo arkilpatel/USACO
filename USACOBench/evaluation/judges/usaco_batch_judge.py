@@ -20,7 +20,7 @@ Result = Dict[str, str]
 ResultSet = List[Result]
 
 # Paths for generated solutions and predictions
-_REPO_ROOT = '/home/mila/a/arkil.patel/USACO'
+_REPO_ROOT = os.environ.get('USACO_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 _USACO_SANDBOX_DIR = os.path.join(_REPO_ROOT, 'usaco_sandbox')
 _USACO_PREDICTIONS_DIR = os.path.join(_USACO_SANDBOX_DIR, 'predictions', 'usaco')
 _USACO_SOLUTIONS_DIR = os.path.join(_USACO_SANDBOX_DIR, 'solutions', 'usaco')

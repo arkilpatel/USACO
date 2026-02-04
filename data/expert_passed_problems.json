@@ -1,0 +1,697 @@
+{
+  "1251_bronze_cow_college": {
+    "num_passed": 12,
+    "num_tests": 12,
+    "percentage_passed": 100.0
+  },
+  "1277_bronze_moo_operations": {
+    "num_passed": 11,
+    "num_tests": 11,
+    "percentage_passed": 100.0
+  },
+  "1299_bronze_hungry_cow": {
+    "num_passed": 13,
+    "num_tests": 13,
+    "percentage_passed": 100.0
+  },
+  "1276_bronze_air_cownditioning_ii": {
+    "num_passed": 11,
+    "num_tests": 11,
+    "percentage_passed": 100.0
+  },
+  "1301_bronze_watching_mooloo": {
+    "num_passed": 12,
+    "num_tests": 12,
+    "percentage_passed": 100.0
+  },
+  "1302_silver_bakery": {
+    "num_passed": 11,
+    "num_tests": 11,
+    "percentage_passed": 100.0
+  },
+  "1275_bronze_leaders": {
+    "num_passed": 17,
+    "num_tests": 17,
+    "percentage_passed": 100.0
+  },
+  "1228_bronze_counting_liars": {
+    "num_passed": 12,
+    "num_tests": 12,
+    "percentage_passed": 100.0
+  },
+  "1205_bronze_blocks": {
+    "num_passed": 20,
+    "num_tests": 20,
+    "percentage_passed": 100.0
+  },
+  "1203_bronze_sleeping_in_class": {
+    "num_passed": 11,
+    "num_tests": 11,
+    "percentage_passed": 100.0
+  },
+  "1300_bronze_stamp_grid": {
+    "num_passed": 14,
+    "num_tests": 14,
+    "percentage_passed": 100.0
+  },
+  "1230_silver_visits": {
+    "num_passed": 11,
+    "num_tests": 11,
+    "percentage_passed": 100.0
+  },
+  "1227_bronze_photoshoot": {
+    "num_passed": 11,
+    "num_tests": 11,
+    "percentage_passed": 100.0
+  },
+  "1179_bronze_herdle": {
+    "num_passed": 11,
+    "num_tests": 11,
+    "percentage_passed": 100.0
+  },
+  "1180_bronze_non-transitive_dice": {
+    "num_passed": 11,
+    "num_tests": 11,
+    "percentage_passed": 100.0
+  },
+  "1206_silver_redistributing_gifts": {
+    "num_passed": 11,
+    "num_tests": 11,
+    "percentage_passed": 100.0
+  },
+  "1327_silver_field_day": {
+    "num_passed": 20,
+    "num_tests": 20,
+    "percentage_passed": 100.0
+  },
+  "1131_bronze_acowdemia_i": {
+    "num_passed": 17,
+    "num_tests": 17,
+    "percentage_passed": 100.0
+  },
+  "1156_bronze_air_cownditioning": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "1157_bronze_walking_home": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "1083_bronze_uddered_but_not_herd": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "1109_bronze_clockwise_fence": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "1060_bronze_daisy_chains": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "1108_bronze_comfortable_cows": {
+    "num_passed": 12,
+    "num_tests": 12,
+    "percentage_passed": 100.0
+  },
+  "1059_bronze_do_you_know_your_abcs?": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "1036_bronze_social_distancing_ii": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "1012_bronze_mad_scientist": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "1011_bronze_triangles": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "987_bronze_word_processor": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "1014_silver_swapity_swapity_swap": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "964_bronze_where_am_i?": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "988_bronze_photoshoot": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "966_silver_moobuzz": {
+    "num_passed": 13,
+    "num_tests": 13,
+    "percentage_passed": 100.0
+  },
+  "963_bronze_cow_gymnastics": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "1087_silver_no_time_to_paint": {
+    "num_passed": 13,
+    "num_tests": 13,
+    "percentage_passed": 100.0
+  },
+  "965_bronze_livestock_lineup": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "940_bronze_milk_factory": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "1013_bronze_swapity_swap": {
+    "num_passed": 13,
+    "num_tests": 13,
+    "percentage_passed": 100.0
+  },
+  "941_bronze_cow_evolution": {
+    "num_passed": 17,
+    "num_tests": 17,
+    "percentage_passed": 100.0
+  },
+  "939_bronze_bucket_brigade": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "916_bronze_the_great_revegetation": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "891_bronze_shell_game": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "1040_silver_the_moo_particle": {
+    "num_passed": 12,
+    "num_tests": 12,
+    "percentage_passed": 100.0
+  },
+  "989_bronze_race": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "894_silver_grass_planting": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "855_bronze_mixing_milk": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "856_bronze_the_bucket_list": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "991_silver_loan_repayment": {
+    "num_passed": 11,
+    "num_tests": 11,
+    "percentage_passed": 100.0
+  },
+  "831_bronze_team_tic_tac_toe": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "860_silver_mooyo_mooyo": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "857_bronze_back_and_forth": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "784_bronze_lifeguards": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "788_silver_mootube": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "815_gold_taming_the_herd": {
+    "num_passed": 11,
+    "num_tests": 11,
+    "percentage_passed": 100.0
+  },
+  "762_silver_my_cow_ate_my_homework": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "759_bronze_blocked_billboard": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "835_silver_lemonade_line": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "736_bronze_bovine_genomics": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "761_bronze_milk_measurement": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "764_silver_the_bovine_shuffle": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "808_bronze_hoofball": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "739_silver_bovine_genomics": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "735_bronze_the_lost_cow": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "809_bronze_taming_the_herd": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "738_silver_paired_up": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "760_bronze_the_bovine_shuffle": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "639_bronze_diamond_collector": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "783_bronze_blocked_billboard_ii": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "549_silver_bessie_goes_moo": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "546_bronze_bessie_gets_even": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "785_bronze_out_of_place": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "647_gold_248": {
+    "num_passed": 12,
+    "num_tests": 12,
+    "percentage_passed": 100.0
+  },
+  "642_silver_field_reduction": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "644_silver_closing_the_farm": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "737_bronze_modern_art": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "641_bronze_field_reduction": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "640_bronze_bull_in_a_china_shop": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "432_bronze_decorating_the_pastures": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "643_silver_diamond_collector": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "412_bronze_reordering_the_cows": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "434_silver_dueling_gpss": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "358_bronze_record_keeping": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "397_silver_auto-complete": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "431_bronze_fair_photography": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "430_bronze_odometer": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "361_silver_milk_scheduling": {
+    "num_passed": 11,
+    "num_tests": 11,
+    "percentage_passed": 100.0
+  },
+  "395_bronze_auto-complete": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "381_silver_recording_the_moolympics": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "376_bronze_ski_course_design": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "359_bronze_cow_baseball": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "400_gold_roadblock": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "262_silver_poker_hands": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "280_bronze_photo": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "340_bronze_combination_lock": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "360_bronze_wormholes": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "342_bronze_farmer_john_has_no_large_brown_cow": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "260_bronze_breed_proximity": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "545_bronze_moocryption": {
+    "num_passed": 15,
+    "num_tests": 15,
+    "percentage_passed": 100.0
+  },
+  "344_silver_crowded_cows": {
+    "num_passed": 11,
+    "num_tests": 11,
+    "percentage_passed": 100.0
+  },
+  "341_bronze_goldilocks_and_the_n_cows": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "246_silver_milk_scheduling": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "267_gold_necklace": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "241_bronze_message_relay": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "242_bronze_cow_crossings": {
+    "num_passed": 15,
+    "num_tests": 15,
+    "percentage_passed": 100.0
+  },
+  "261_bronze_breed_assignment": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "396_bronze_secret_code": {
+    "num_passed": 9,
+    "num_tests": 9,
+    "percentage_passed": 100.0
+  },
+  "190_silver_clumsy_cows": {
+    "num_passed": 16,
+    "num_tests": 16,
+    "percentage_passed": 100.0
+  },
+  "228_silver_party_invitations": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "225_bronze_liars_and_truth_tellers": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "229_gold_cow_lineup": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "243_bronze_perimeter": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "210_silver_milk_routing": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "259_bronze_cow_race": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "193_gold_balanced_cow_breeds": {
+    "num_passed": 16,
+    "num_tests": 16,
+    "percentage_passed": 100.0
+  },
+  "121_bronze_times_17": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "191_silver_distant_pastures": {
+    "num_passed": 16,
+    "num_tests": 16,
+    "percentage_passed": 100.0
+  },
+  "192_silver_balanced_cow_breeds": {
+    "num_passed": 16,
+    "num_tests": 16,
+    "percentage_passed": 100.0
+  },
+  "130_bronze_cows_in_a_row": {
+    "num_passed": 22,
+    "num_tests": 22,
+    "percentage_passed": 100.0
+  },
+  "206_bronze_scrambled_letters": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "131_bronze_three_lines": {
+    "num_passed": 20,
+    "num_tests": 20,
+    "percentage_passed": 100.0
+  },
+  "128_gold_haybale_restacking": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "187_bronze_find_the_cow!": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "115_silver_overplanting_(silver)": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "189_bronze_horseshoes": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "188_bronze_typo": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "94_bronze_hay_bales": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "132_bronze_islands": {
+    "num_passed": 15,
+    "num_tests": 15,
+    "percentage_passed": 100.0
+  },
+  "223_bronze_mirrors": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "84_bronze_contest_timing": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "86_bronze_moo_sick": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "118_gold_cow_coupons": {
+    "num_passed": 14,
+    "num_tests": 14,
+    "percentage_passed": 100.0
+  },
+  "89_silver_cow_lineup": {
+    "num_passed": 12,
+    "num_tests": 12,
+    "percentage_passed": 100.0
+  },
+  "105_bronze_grazing_patterns": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "90_silver_tile_exchanging": {
+    "num_passed": 12,
+    "num_tests": 12,
+    "percentage_passed": 100.0
+  },
+  "103_bronze_gifts": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "108_silver_mountain_climbing": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "87_bronze_cow_beauty_pageant_(bronze_level)": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  },
+  "101_gold_simplifying_the_farm": {
+    "num_passed": 12,
+    "num_tests": 12,
+    "percentage_passed": 100.0
+  },
+  "112_bronze_rope_folding": {
+    "num_passed": 10,
+    "num_tests": 10,
+    "percentage_passed": 100.0
+  }
+}
