@@ -2,7 +2,7 @@ from typing import Any, List, Dict, Union
 import json
 
 from USACOBench.utils import get_code_from_solution
-from .sandbox import run_code, DEFAULT_SANDBOX_DIR
+from .sandbox import run_code, get_default_sandbox_dir
 from .pdb_tool import debug_init, debug_interact, debug_end
 
 # no saved state
@@ -11,7 +11,7 @@ def run_code_wrapper(code):
 
 # with saved state
 # def run_code_wrapper(code):
-#     return run_code(code, in_env=DEFAULT_SANDBOX_DIR, out_env=DEFAULT_SANDBOX_DIR)
+#     return run_code(code, in_env=get_default_sandbox_dir(), out_env=get_default_sandbox_dir())
 
 # for testing
 def mock_run_code(code=None):

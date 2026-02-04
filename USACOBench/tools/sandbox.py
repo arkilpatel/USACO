@@ -12,26 +12,28 @@ import signal
 import tempfile
 import dill
 
-# Sandbox directory - use environment variable, or fall back to repo-relative path
-_REPO_ROOT = os.environ.get('USACO_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-_SANDBOX_DIR = os.path.join(_REPO_ROOT, 'usaco_sandbox')
+from USACOBench.evaluation.judges.sandbox_config import get_sandbox_dir
 
-# Create sandbox directory if it doesn't exist
-os.makedirs(_SANDBOX_DIR, exist_ok=True)
 
-DEFAULT_SANDBOX_DIR = os.path.join(_SANDBOX_DIR, 'sandbox_env.db')
-DEFAULT_OUT_FILE = os.path.join(_SANDBOX_DIR, 'sandbox_out.out')
+def get_default_sandbox_dir():
+    """Get default sandbox env path (lazy initialization)."""
+    sandbox_dir = get_sandbox_dir()
+    path = os.path.join(sandbox_dir, 'sandbox_env.db')
+    if not os.path.isfile(path):
+        with open(path, 'wb') as f:
+            dill.dump({}, f)
+    return path
 
-if not os.path.isfile(DEFAULT_SANDBOX_DIR):
-    # init empty environment if not available
-    with open(DEFAULT_SANDBOX_DIR, 'wb') as f:
-        dill.dump({}, f)
+
+def get_default_out_file():
+    """Get default output file path (lazy initialization)."""
+    return os.path.join(get_sandbox_dir(), 'sandbox_out.out')
 
 def run_code(
     code: str,
     timeout: float = 5,
     memory_limit: int = 64,
-    out_file: str = DEFAULT_OUT_FILE,
+    out_file: str = None,
     in_env: str = None,
     out_env: str = None,
 ) -> str:
@@ -43,6 +45,9 @@ def run_code(
     in_env: dill environment to read state (e.g. global variables) from
     out_env: dill env to save state to
     """
+    # Default out_file if not provided
+    if out_file is None:
+        out_file = get_default_out_file()
 
     f = open(out_file, 'w') # create file so the read later doesn't fail — file may not be created during exec e.g. if there is a compile issue
 

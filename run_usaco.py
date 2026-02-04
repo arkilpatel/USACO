@@ -92,9 +92,15 @@ from datetime import datetime
 from pathlib import Path
 timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
 safe_model_name = model_name.replace('/', '_').replace('\\', '_')
-run_log_dir = Path(__file__).parent / 'logs' / f"{safe_model_name}_{timestamp_str}"
+run_id = f"{safe_model_name}_{timestamp_str}"
+run_log_dir = Path(__file__).parent / 'logs' / run_id
 run_log_dir.mkdir(parents=True, exist_ok=True)
 print(f"Run log directory: {run_log_dir}")
+
+# Initialize sandbox with run-specific ID (will be cleaned up at end)
+from USACOBench.evaluation.judges.sandbox_config import initialize_sandbox, cleanup_sandbox
+sandbox_run_id = initialize_sandbox(run_id)
+print(f"Sandbox initialized with run ID: {sandbox_run_id}")
 
 # Start local vLLM server if requested
 vllm_process = None
@@ -212,6 +218,9 @@ print()
 # Cleanup vLLM server if we started one
 if vllm_process is not None:
     stop_vllm_server(vllm_process)
+
+# Cleanup sandbox directory
+cleanup_sandbox()
 
 
 

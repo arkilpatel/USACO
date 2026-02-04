@@ -11,6 +11,7 @@ from typing import List, Dict, Any, Union
 from USACOBench.evaluation.result_type import ResultType
 from .usaco_utils import check_correctness, get_test_in_out_files
 from .judge import Judge
+from .sandbox_config import get_predictions_path, get_solutions_path
 
 Problem = Dict[Any, Any]
 Solution = Dict[str, Union[str, None]]
@@ -18,25 +19,26 @@ SolutionSet = List[Solution]
 Result = Dict[str, str]
 ResultSet = List[Result]
 
-# Paths for generated solutions and predictions
-_REPO_ROOT = os.environ.get('USACO_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-_USACO_SANDBOX_DIR = os.path.join(_REPO_ROOT, 'usaco_sandbox')
-_USACO_PREDICTIONS_DIR = os.path.join(_USACO_SANDBOX_DIR, 'predictions', 'usaco')
-_USACO_SOLUTIONS_DIR = os.path.join(_USACO_SANDBOX_DIR, 'solutions', 'usaco')
 
-USACO_PREDICTIONS_PATH = os.path.join(_USACO_PREDICTIONS_DIR, '{}_{}.pred')
-USACO_SOLUTIONS_PATH = os.path.join(_USACO_SOLUTIONS_DIR, '{}_{}.py')
+def _get_usaco_predictions_path():
+    """Get predictions path (lazy initialization via sandbox_config)."""
+    return get_predictions_path()
 
-# construct judge sandbox directories if they don't exist
-Path(_USACO_SOLUTIONS_DIR).mkdir(parents=True, exist_ok=True)
-Path(_USACO_PREDICTIONS_DIR).mkdir(parents=True, exist_ok=True)
+
+def _get_usaco_solutions_path():
+    """Get solutions path (lazy initialization via sandbox_config)."""
+    return get_solutions_path()
 
 class USACOJudge(Judge):
     def __init__(self,
-                 predictions_path: str = USACO_PREDICTIONS_PATH,
-                 solutions_path: str = USACO_SOLUTIONS_PATH):
+                 predictions_path: str = None,
+                 solutions_path: str = None):
+        if predictions_path is None:
+            predictions_path = _get_usaco_predictions_path()
+        if solutions_path is None:
+            solutions_path = _get_usaco_solutions_path()
         self.predictions_path = predictions_path
-        
+
         super().__init__(solutions_path=solutions_path, sleep_length=0)
 
     def _judge(self,

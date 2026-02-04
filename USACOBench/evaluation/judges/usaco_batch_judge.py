@@ -12,6 +12,7 @@ import os
 
 from USACOBench.evaluation.result_type import ResultType
 from .usaco_utils import check_correctness, get_test_in_out_files
+from .sandbox_config import get_predictions_path, get_solutions_path
 
 Problem = Dict[Any, Any]
 Solution = Dict[str, Union[str, None]]
@@ -19,18 +20,15 @@ SolutionSet = List[Solution]
 Result = Dict[str, str]
 ResultSet = List[Result]
 
-# Paths for generated solutions and predictions
-_REPO_ROOT = os.environ.get('USACO_ROOT', os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-_USACO_SANDBOX_DIR = os.path.join(_REPO_ROOT, 'usaco_sandbox')
-_USACO_PREDICTIONS_DIR = os.path.join(_USACO_SANDBOX_DIR, 'predictions', 'usaco')
-_USACO_SOLUTIONS_DIR = os.path.join(_USACO_SANDBOX_DIR, 'solutions', 'usaco')
 
-USACO_PREDICTIONS_PATH = os.path.join(_USACO_PREDICTIONS_DIR, '{}_{}.pred')
-USACO_SOLUTIONS_PATH = os.path.join(_USACO_SOLUTIONS_DIR, '{}_{}.py')
+def _get_usaco_predictions_path():
+    """Get predictions path (lazy initialization via sandbox_config)."""
+    return get_predictions_path()
 
-# construct judge sandbox directories if they don't exist
-Path(_USACO_SOLUTIONS_DIR).mkdir(parents=True, exist_ok=True)
-Path(_USACO_PREDICTIONS_DIR).mkdir(parents=True, exist_ok=True)
+
+def _get_usaco_solutions_path():
+    """Get solutions path (lazy initialization via sandbox_config)."""
+    return get_solutions_path()
 
 class USACOBatchJudge(ABC):
     def __init__(self):
@@ -142,7 +140,7 @@ def usaco_python3_judge(problem_id: str,
     # saving solution code if save_solution
     timestamp = datetime.now().strftime("%m_%d_%Y_%H_%M_%S_%f")
     if save_solution:
-        solution_file = USACO_SOLUTIONS_PATH.format(problem_id, timestamp)
+        solution_file = _get_usaco_solutions_path().format(problem_id, timestamp)
         with open(solution_file, 'w') as f:
             f.write(solution_code)
 
@@ -157,7 +155,7 @@ def usaco_python3_judge(problem_id: str,
     
     for i in tqdm(range(1, num_tests+1), disable=not verbose):
         input_file, output_file = get_test_in_out_files(problem_id, i)
-        pred_file = USACO_PREDICTIONS_PATH.format(i, timestamp) # include timestamp to avoid concurrency issues
+        pred_file = _get_usaco_predictions_path().format(i, timestamp) # include timestamp to avoid concurrency issues
         
         # eval
         result_i = check_correctness(solution_code, i, runtime_limit, memory_limit, input_file, pred_file, output_file)
