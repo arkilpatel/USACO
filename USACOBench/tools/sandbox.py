@@ -12,8 +12,15 @@ import signal
 import tempfile
 import dill
 
-DEFAULT_SANDBOX_DIR = '/n/fs/nlp-iml/p-in-memory-learning2/code_sandbox/sandbox_env.db'
-DEFAULT_OUT_FILE = '/n/fs/nlp-iml/p-in-memory-learning2/code_sandbox/sandbox_out.out'
+# Sandbox directory
+_REPO_ROOT = '/home/mila/a/arkil.patel/USACO'
+_SANDBOX_DIR = os.path.join(_REPO_ROOT, 'usaco_sandbox')
+
+# Create sandbox directory if it doesn't exist
+os.makedirs(_SANDBOX_DIR, exist_ok=True)
+
+DEFAULT_SANDBOX_DIR = os.path.join(_SANDBOX_DIR, 'sandbox_env.db')
+DEFAULT_OUT_FILE = os.path.join(_SANDBOX_DIR, 'sandbox_out.out')
 
 if not os.path.isfile(DEFAULT_SANDBOX_DIR):
     # init empty environment if not available

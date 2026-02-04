@@ -1,5 +1,6 @@
 from pathlib import Path
 import numpy as np
+import os
 import time
 from datetime import datetime
 import random
@@ -15,10 +16,13 @@ SolutionSet = List[Solution]
 Result = Dict[str, str]
 ResultSet = List[Result]
 
-# [README] modify solutions path
-CODEFORCES_SOLUTIONS_PATH = '/n/fs/nlp-iml/p-in-memory-learning2/judge_sandbox/solutions/codeforces/{}_{}_{}.py'
+# Solutions path - uses scratch directory
+_SCRATCH_DIR = os.path.expanduser('~/scratch')
+_CF_SOLUTIONS_DIR = os.path.join(_SCRATCH_DIR, 'usaco_sandbox', 'solutions', 'codeforces')
+CODEFORCES_SOLUTIONS_PATH = os.path.join(_CF_SOLUTIONS_DIR, '{}_{}_{}.py')
+
 # construct judge sandbox directories if they don't exist
-Path('judge_sandbox/solutions/codeforces').mkdir(parents=True, exist_ok=True)
+Path(_CF_SOLUTIONS_DIR).mkdir(parents=True, exist_ok=True)
 
 class CodeforcesJudge(Judge):
     def __init__(self,

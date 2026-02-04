@@ -1,0 +1,91 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "usacobench"
+version = "0.1.0"
+description = "Can Language Models Solve Olympiad Programming? - USACO Benchmark"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [
+    { name = "Quan Shi" },
+    { name = "Michael Tang" },
+    { name = "Karthik Narasimhan" },
+    { name = "Shunyu Yao" },
+]
+keywords = ["nlp", "competitive-programming", "usaco", "benchmark", "language-models"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "aiohttp>=3.8.0",
+    "aiolimiter>=1.1.0",
+    "anthropic>=0.21.0",
+    "backoff>=2.2.0",
+    "beautifulsoup4>=4.12.0",
+    "datasets>=2.14.0",
+    "ghdiff>=0.4",
+    "gymnasium>=0.29.0",
+    "html2text>=2020.1.16",
+    "httpx>=0.26.0",
+    "huggingface-hub>=0.17.0",
+    "ipykernel>=6.28.0",
+    "ipython>=8.0.0",
+    "Markdown>=3.5",
+    "matplotlib>=3.8.0",
+    "numpy>=1.26.0",
+    "openai>=1.9.0",
+    "pandas>=2.1.0",
+    "parse>=1.19.0",
+    "pillow>=10.0.0",
+    "pyarrow>=13.0.0",
+    "pydantic>=1.10.0,<2.0.0",
+    "PyPDF2>=3.0.0",
+    "pyperclip>=1.8.0",
+    "python-dotenv>=1.0.0",
+    "python-leetcode>=1.2.0",
+    "PyYAML>=6.0.0",
+    "rank-bm25>=0.2.0",
+    "redis>=5.0.0",
+    "regex>=2023.10.0",
+    "requests>=2.31.0",
+    "scipy>=1.11.0",
+    "seaborn>=0.13.0",
+    "tiktoken>=0.5.0",
+    "tokenizers>=0.15.0",
+    "tqdm>=4.66.0",
+    "vllm>=0.6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/princeton-nlp/USACO"
+Repository = "https://github.com/princeton-nlp/USACO"
+Paper = "https://arxiv.org/abs/2404.10952v1"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["USACOBench"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]

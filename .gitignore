@@ -10,6 +10,9 @@ share/
 __pycache__/
 results/
 
+logs/
+*sandbox/
+
 **.slurm
 **.sh
 *.log
@@ -17,6 +20,7 @@ results/
 .ipynb_checkpoints/
 .Trash*
 .env
+.venv
 *.pyc
 **.pickle
 

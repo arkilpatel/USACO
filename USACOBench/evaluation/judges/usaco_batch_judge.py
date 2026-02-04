@@ -19,12 +19,18 @@ SolutionSet = List[Solution]
 Result = Dict[str, str]
 ResultSet = List[Result]
 
-# [README] modify where generated solutions and subsequent predictions are stored
-USACO_PREDICTIONS_PATH = '/n/fs/nlp-qbshi/p-in-memory-learning/judge_sandbox/predictions/usaco/{}_{}.pred'
-USACO_SOLUTIONS_PATH = '/n/fs/nlp-qbshi/p-in-memory-learning/judge_sandbox/solutions/usaco/{}_{}.py'
+# Paths for generated solutions and predictions
+_REPO_ROOT = '/home/mila/a/arkil.patel/USACO'
+_USACO_SANDBOX_DIR = os.path.join(_REPO_ROOT, 'usaco_sandbox')
+_USACO_PREDICTIONS_DIR = os.path.join(_USACO_SANDBOX_DIR, 'predictions', 'usaco')
+_USACO_SOLUTIONS_DIR = os.path.join(_USACO_SANDBOX_DIR, 'solutions', 'usaco')
+
+USACO_PREDICTIONS_PATH = os.path.join(_USACO_PREDICTIONS_DIR, '{}_{}.pred')
+USACO_SOLUTIONS_PATH = os.path.join(_USACO_SOLUTIONS_DIR, '{}_{}.py')
+
 # construct judge sandbox directories if they don't exist
-Path('judge_sandbox/solutions/usaco').mkdir(parents=True, exist_ok=True)
-Path('judge_sandbox/predictions/usaco').mkdir(parents=True, exist_ok=True)
+Path(_USACO_SOLUTIONS_DIR).mkdir(parents=True, exist_ok=True)
+Path(_USACO_PREDICTIONS_DIR).mkdir(parents=True, exist_ok=True)
 
 class USACOBatchJudge(ABC):
     def __init__(self):
