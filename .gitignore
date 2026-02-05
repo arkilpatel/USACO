@@ -12,6 +12,7 @@ results/
 
 logs/
 *_sandbox_*/
+*_sandbox/
 
 **.slurm
 **.sh

@@ -247,6 +247,16 @@ def start_vllm_server(
     if max_model_len is not None:
         cmd.extend(["--max-model-len", str(max_model_len)])
 
+    # Add Ministral-specific flags for proper tokenization and reasoning
+    if _is_ministral_model(model):
+        print(f"Detected Ministral model, adding special vLLM flags...")
+        cmd.extend([
+            "--tokenizer_mode", "mistral",
+            "--config_format", "mistral",
+            "--load_format", "mistral",
+            "--reasoning-parser", "mistral",
+        ])
+
     # Add any additional kwargs as command line arguments
     for key, value in kwargs.items():
         arg_name = f"--{key.replace('_', '-')}"
@@ -445,6 +455,45 @@ async def generate_from_vllm(
     return responses
 
 
+# Cache for Nemotron tokenizer to avoid reloading
+_NEMOTRON_TOKENIZER_CACHE = {}
+
+
+def _get_nemotron_tokenizer(model: str):
+    """Get or create cached Nemotron tokenizer."""
+    if model not in _NEMOTRON_TOKENIZER_CACHE:
+        from transformers import AutoTokenizer
+        print(f"Loading Nemotron tokenizer for {model}...")
+        _NEMOTRON_TOKENIZER_CACHE[model] = AutoTokenizer.from_pretrained(model)
+    return _NEMOTRON_TOKENIZER_CACHE[model]
+
+
+def _format_nemotron_prompt(prompt: str, model: str) -> str:
+    """
+    Format a prompt for Nemotron models using their chat template.
+    Nemotron requires manual chat template application with enable_thinking=True.
+    """
+    tokenizer = _get_nemotron_tokenizer(model)
+    messages = [{"role": "user", "content": prompt}]
+    formatted = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True,
+        enable_thinking=True
+    )
+    return formatted
+
+
+def _is_nemotron_model(model: str) -> bool:
+    """Check if the model is a Nemotron model requiring special handling."""
+    return "nemotron" in model.lower()
+
+
+def _is_ministral_model(model: str) -> bool:
+    """Check if the model is a Ministral model requiring special vLLM flags."""
+    return "ministral" in model.lower()
+
+
 def vllm_local(
     prompts: List[str],
     model: str = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
@@ -478,6 +527,54 @@ def vllm_local(
 
     full_base_url = f"{base_url}:{port}/v1"
 
+    # Check if this is a Nemotron model requiring manual chat template
+    use_nemotron_template = _is_nemotron_model(model)
+
+    if use_nemotron_template:
+        # For Nemotron: apply chat template manually and use completions API
+        print("Using Nemotron chat template with enable_thinking=True")
+        formatted_prompts = [_format_nemotron_prompt(p, model) for p in prompts]
+
+        # Use SYNC client for single-item generation
+        if len(prompts) == 1:
+            client = OpenAI(api_key="EMPTY", base_url=full_base_url)
+            try:
+                # Use completions API (not chat) since we pre-formatted the prompt
+                response = client.completions.create(
+                    model=model,
+                    prompt=formatted_prompts[0],
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
+                if response and response.choices:
+                    return [response.choices[0].text]
+                else:
+                    return [""]
+            except Exception as e:
+                print(f"Error generating response: {e}")
+                return [""]
+        else:
+            # Batch generation for Nemotron
+            texts = []
+            client = OpenAI(api_key="EMPTY", base_url=full_base_url)
+            for formatted_prompt in formatted_prompts:
+                try:
+                    response = client.completions.create(
+                        model=model,
+                        prompt=formatted_prompt,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                    )
+                    if response and response.choices:
+                        texts.append(response.choices[0].text)
+                    else:
+                        texts.append("")
+                except Exception as e:
+                    print(f"Error generating response: {e}")
+                    texts.append("")
+            return texts
+
+    # Non-Nemotron models: use standard chat completions API
     # Auto-detect Ministral models and use special system prompt
     if system_prompt is None and "ministral" in model.lower():
         print("Using Ministral system prompt.")
