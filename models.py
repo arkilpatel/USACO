@@ -195,7 +195,7 @@ def start_vllm_server(
     dtype: str = "auto",
     trust_remote_code: bool = True,
     wait_for_ready: bool = True,
-    timeout: int = 900,
+    timeout: int = 1500,
     log_dir: str = None,
     **kwargs,
 ) -> subprocess.Popen:
@@ -212,7 +212,7 @@ def start_vllm_server(
         dtype: Data type for model weights (default: "auto")
         trust_remote_code: Whether to trust remote code from HuggingFace (default: True)
         wait_for_ready: Wait for server to be ready before returning (default: True)
-        timeout: Timeout in seconds when waiting for server (default: 900, i.e. 15 minutes)
+        timeout: Timeout in seconds when waiting for server (default: 1500, i.e. 25 minutes)
         **kwargs: Additional arguments passed to vllm serve command
 
     Returns:
