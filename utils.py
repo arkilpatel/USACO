@@ -1,6 +1,7 @@
 from typing import List, Dict, Any, Tuple, Union, Callable
 import pickle
 import json
+import os
 from datetime import datetime
 from typing import Dict, List
 from USACOBench.evaluation.metrics import pass_at_k
@@ -27,6 +28,10 @@ def save_json(obj, path, timestamp=True, verbose=True):
         fname = '{}_{}.json'.format(path, timestamp_str)
     else:
         fname = '{}.json'.format(path)
+    # Ensure parent directory exists
+    parent_dir = os.path.dirname(fname)
+    if parent_dir:
+        os.makedirs(parent_dir, exist_ok=True)
     print('Saved json at {}'.format(fname))
     with open(fname, 'w') as f:
         json.dump(obj, f)
