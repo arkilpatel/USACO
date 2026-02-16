@@ -236,6 +236,7 @@ def evaluate_model_streaming(
     model_name: str = "model",
     verbose: bool = True,
     log_dir: str = None,
+    batch_size: int = 1,
 ) -> Tuple[ResultDict, SolutionDict, List[ResultSet], List[SolutionSet]]:
     """
     Streaming evaluation that judges solutions as soon as generation completes.
@@ -281,17 +282,12 @@ def evaluate_model_streaming(
     logger.log(f"Starting evaluation: {len(queries)} problems, {attempts} attempts each")
     logger.log(f"Model: {model_name}")
     logger.log(f"Judge workers: {n_judge_workers}")
+    logger.log(f"Batch size: {batch_size}")
 
     start_time = time.time()
 
     # Prepare prompts
     prompts = [prompt_fn(query) for query in queries]
-
-    # Results storage
-    all_results = []
-    all_responses = []
-    all_prompts = []
-    all_queries = []
 
     # For attempts > 1, we repeat queries
     expanded_queries = queries * attempts
@@ -385,27 +381,36 @@ def evaluate_model_streaming(
         t.start()
         judge_threads.append(t)
 
-    # Generate responses ONE AT A TIME and immediately queue for judging
+    # Generate responses in batches and immediately queue for judging
     if verbose:
-        print("Starting generation + judging (one problem at a time)...")
-    logger.log("Starting generation + judging (streaming mode)...")
+        print(f"Starting generation + judging (batch_size={batch_size})...")
+    logger.log(f"Starting generation + judging (batch_size={batch_size})...")
 
     from tqdm import tqdm
 
-    for idx, (query, prompt) in enumerate(tqdm(zip(expanded_queries, expanded_prompts),
-                                                total=len(expanded_queries),
-                                                desc="Generating",
-                                                disable=not verbose)):
-        # Generate single response
-        responses = model_fn([prompt], verbose=False)
-        response = responses[0] if responses else ""
+    total = len(expanded_queries)
+    pbar = tqdm(total=total, desc="Generating", disable=not verbose)
 
-        # Immediately queue for judging
-        judge_queue.put((idx, query, prompt, response))
+    for batch_start in range(0, total, batch_size):
+        batch_end = min(batch_start + batch_size, total)
+        batch_prompts = expanded_prompts[batch_start:batch_end]
+        batch_queries = expanded_queries[batch_start:batch_end]
+
+        # Generate batch of responses
+        responses = model_fn(batch_prompts, verbose=False)
+
+        # Queue each response for judging immediately
+        for i, (query, prompt, response) in enumerate(zip(batch_queries, batch_prompts, responses)):
+            idx = batch_start + i
+            judge_queue.put((idx, query, prompt, response if response else ""))
+
+        pbar.update(batch_end - batch_start)
 
         # Log generation progress
-        if (idx + 1) % 10 == 0:
-            logger.log(f"Generated {idx + 1}/{len(expanded_queries)} responses")
+        if batch_end % 10 == 0 or batch_end == total:
+            logger.log(f"Generated {batch_end}/{total} responses")
+
+    pbar.close()
 
     logger.log(f"All {len(expanded_queries)} generations complete, waiting for judging to finish...")
 
@@ -742,6 +747,7 @@ def run_solve_streaming(
     temperature=0.6,
     max_tokens=28000,
     log_dir=None,
+    batch_size=1,
 ):
     """
     Streaming version of run_solve that judges as soon as generation completes.
@@ -787,7 +793,7 @@ def run_solve_streaming(
             log_dir=log_dir,
         )
     else:
-        # Use sequential streaming for other backends
+        # Use sequential/batched streaming for other backends
         rdict, sdict, rs, ss = evaluate_model_streaming(
             model_fn=model_fn,
             prompt_fn=solve_prompt_fn,
@@ -799,6 +805,7 @@ def run_solve_streaming(
             model_name=model_name,
             verbose=True,
             log_dir=log_dir,
+            batch_size=batch_size,
         )
 
     safe_model_name = model_name.replace('/', '_').replace('\\', '_')

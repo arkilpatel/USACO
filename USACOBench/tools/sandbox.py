@@ -111,18 +111,25 @@ def run_code(
                 with open(out_env, 'wb') as f:
                     dill.dump(env, f)
 
-    manager = multiprocessing.Manager()
-    result = manager.list()
+    # Temporarily use /tmp for multiprocessing Manager to avoid NFS issues
+    # Must set tempfile.tempdir directly since gettempdir() caches the result
+    old_tempdir = tempfile.tempdir
+    tempfile.tempdir = '/tmp'
+    try:
+        manager = multiprocessing.Manager()
+        result = manager.list()
 
-    p = multiprocessing.Process(target=unsafe_execute)
-    p.start()
-    p.join(timeout=timeout + 1)
-    if p.is_alive():
-        p.kill()
+        p = multiprocessing.Process(target=unsafe_execute)
+        p.start()
+        p.join(timeout=timeout + 1)
+        if p.is_alive():
+            p.kill()
+    finally:
+        tempfile.tempdir = old_tempdir
 
     with open(out_file, 'r') as f:
         result.append(f.read().strip())
-    
+
     return '\n'.join(result)
 
 
@@ -149,7 +156,8 @@ def swallow_io():
 
 @contextlib.contextmanager
 def create_tempdir():
-    with tempfile.TemporaryDirectory() as dirname:
+    # Explicitly use /tmp to avoid NFS issues (TMPDIR may be on NFS for other purposes)
+    with tempfile.TemporaryDirectory(dir='/tmp') as dirname:
         with chdir(dirname):
             yield dirname
 

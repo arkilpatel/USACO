@@ -10,6 +10,9 @@ share/
 __pycache__/
 results/
 
+old_*/
+*_logs/
+
 logs/
 *_sandbox_*/
 *_sandbox/

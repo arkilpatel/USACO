@@ -197,6 +197,7 @@ def start_vllm_server(
     wait_for_ready: bool = True,
     timeout: int = 1500,
     log_dir: str = None,
+    max_num_seqs: int = 1,
     **kwargs,
 ) -> subprocess.Popen:
     """
@@ -239,6 +240,7 @@ def start_vllm_server(
         "--tensor-parallel-size", str(tensor_parallel_size),
         "--gpu-memory-utilization", str(gpu_memory_utilization),
         "--dtype", dtype,
+        "--max-num-seqs", str(max_num_seqs),
     ]
 
     if trust_remote_code:

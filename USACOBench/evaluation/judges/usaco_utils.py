@@ -137,14 +137,21 @@ def check_correctness(program: str, test_num: int, timeout: float, memory_limit:
             os.rmdir = rmdir
             os.chdir = chdir
 
-    manager = multiprocessing.Manager()
-    result = manager.list()
+    # Temporarily use /tmp for multiprocessing Manager to avoid NFS issues
+    # Must set tempfile.tempdir directly since gettempdir() caches the result
+    old_tempdir = tempfile.tempdir
+    tempfile.tempdir = '/tmp'
+    try:
+        manager = multiprocessing.Manager()
+        result = manager.list()
 
-    p = multiprocessing.Process(target=unsafe_execute)
-    p.start()
-    p.join(timeout=timeout + 1)
-    if p.is_alive():
-        p.kill()
+        p = multiprocessing.Process(target=unsafe_execute)
+        p.start()
+        p.join(timeout=timeout + 1)
+        if p.is_alive():
+            p.kill()
+    finally:
+        tempfile.tempdir = old_tempdir
 
     if not result:
         result.append(f"timed out on test {test_num}")
@@ -201,7 +208,8 @@ def swallow_io():
 
 @contextlib.contextmanager
 def create_tempdir():
-    with tempfile.TemporaryDirectory() as dirname:
+    # Explicitly use /tmp to avoid NFS issues (TMPDIR may be on NFS for other purposes)
+    with tempfile.TemporaryDirectory(dir='/tmp') as dirname:
         with chdir(dirname):
             yield dirname
 
