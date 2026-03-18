@@ -9,6 +9,8 @@ lib/
 share/
 __pycache__/
 results/
+scores/
+expert_outputs/
 
 old_*/
 *_logs/

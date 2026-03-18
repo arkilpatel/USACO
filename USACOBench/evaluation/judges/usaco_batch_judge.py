@@ -2,6 +2,7 @@ import numpy as np
 import time
 from datetime import datetime
 import random
+import uuid
 from tqdm import tqdm
 from typing import List, Dict, Any, Union
 from abc import ABC, abstractmethod
@@ -138,7 +139,7 @@ def usaco_python3_judge(problem_id: str,
     assert mode == 'fail_fast' or mode == 'eval_all', 'Only modes fail_fast and eval_all are supported'
 
     # saving solution code if save_solution
-    timestamp = datetime.now().strftime("%m_%d_%Y_%H_%M_%S_%f")
+    timestamp = f"{datetime.now().strftime('%m_%d_%Y_%H_%M_%S_%f')}_{uuid.uuid4().hex[:8]}"
     if save_solution:
         solution_file = _get_usaco_solutions_path().format(problem_id, timestamp)
         with open(solution_file, 'w') as f:

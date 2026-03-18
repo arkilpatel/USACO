@@ -492,6 +492,7 @@ def evaluate_model_streaming_parallel(
     max_tokens: int = 28000,
     verbose: bool = True,
     log_dir: str = None,
+    seed: int = None,
 ) -> Tuple[ResultDict, SolutionDict, List[ResultSet], List[SolutionSet]]:
     """
     Streaming evaluation with PARALLEL generation using Together AI.
@@ -668,6 +669,7 @@ def evaluate_model_streaming_parallel(
         num_workers=n_llm_workers,
         on_result=on_generation_complete,
         verbose=verbose,
+        seed=seed,
     )
 
     logger.log(f"All {len(expanded_queries)} generations complete, waiting for judging to finish...")
@@ -748,6 +750,7 @@ def run_solve_streaming(
     max_tokens=28000,
     log_dir=None,
     batch_size=1,
+    seed=None,
 ):
     """
     Streaming version of run_solve that judges as soon as generation completes.
@@ -791,6 +794,7 @@ def run_solve_streaming(
             max_tokens=max_tokens,
             verbose=True,
             log_dir=log_dir,
+            seed=seed,
         )
     else:
         # Use sequential/batched streaming for other backends
@@ -809,5 +813,8 @@ def run_solve_streaming(
         )
 
     safe_model_name = model_name.replace('/', '_').replace('\\', '_')
-    save_json([rdict, sdict, rs, ss], f'results/results_{safe_model_name}_solve_{attempts}attempts')
+    if seed is not None:
+        save_json([rdict, sdict, rs, ss], f'results/results_{safe_model_name}_solve_{attempts}attempts_seed-{seed}')
+    else:
+        save_json([rdict, sdict, rs, ss], f'results/results_{safe_model_name}_solve_{attempts}attempts')
     return rdict, sdict, rs, ss

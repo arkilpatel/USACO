@@ -30,27 +30,28 @@ async def generate_from_openai_chat_completion(
     stop: Union[str, List[str]],
     requests_per_minute: int = 300,
     verbose=False,
+    seed=None,
     **kwargs,
 ) -> List[str]:
     client = AsyncOpenAI()
     async_responses = []
     for message in messages_list:
-        task = asyncio.create_task(generate_answer(message, client, model))
+        task = asyncio.create_task(generate_answer(message, client, model, seed=seed))
         async_responses.append(task)
     responses = await tqdm_asyncio.gather(*async_responses, disable=not verbose)
     return responses
 
 @backoff.on_exception(backoff.expo, openai.RateLimitError)
-async def generate_answer(prompt, client, model):
+async def generate_answer(prompt, client, model, seed=None):
     """
     Send a prompt to OpenAI API and get the answer.
     :param prompt: the prompt to send.
     :return: the answer.
     """
-    response = await client.chat.completions.create(
-        model=model,
-        messages=prompt,
-    )
+    create_kwargs = dict(model=model, messages=prompt)
+    if seed is not None:
+        create_kwargs['seed'] = seed
+    response = await client.chat.completions.create(**create_kwargs)
     return response
 
 async def generate_from_anthropic_chat_completion(
@@ -90,7 +91,7 @@ def gpt(prompt, model="gpt-4", temperature=0.7, max_tokens=2000, n=1, stop=None,
     return gpts([prompt] * n, model=model, temperature=temperature, max_tokens=max_tokens, stop=stop, **kwargs)[0]
 
 def gpts(prompts, model="gpt-4", temperature=0.7, max_tokens=2000, stop=None,
-         system_prompt: str = None,
+         system_prompt: str = None, seed=None,
          **kwargs) -> list:
     '''
     system_prompt: string added as a special system message at the beginning of the conversation
@@ -100,7 +101,7 @@ def gpts(prompts, model="gpt-4", temperature=0.7, max_tokens=2000, stop=None,
                           {"role": "user", "content": prompt}] for prompt in prompts]
     else:
         messages_list = [[{"role": "user", "content": prompt}] for prompt in prompts]
-    return chatgpts(messages_list, model=model, temperature=temperature, max_tokens=max_tokens, stop=stop, **kwargs)
+    return chatgpts(messages_list, model=model, temperature=temperature, max_tokens=max_tokens, stop=stop, seed=seed, **kwargs)
 
 def chatgpt(messages, model="gpt-4", temperature=0.7, max_tokens=2000, n=1, stop=None, **kwargs) -> list:
     return chatgpts([messages] * n, model=model, temperature=temperature, max_tokens=max_tokens, stop=stop, **kwargs)[0]
@@ -108,10 +109,10 @@ def chatgpt(messages, model="gpt-4", temperature=0.7, max_tokens=2000, n=1, stop
 def chatgpt_raw(messages, model="gpt-4", temperature=0.7, max_tokens=2000, n=1, stop=None, **kwargs) -> list:
     return chatgpts_raw([messages] * n, model=model, temperature=temperature, max_tokens=max_tokens, stop=stop, **kwargs)[0]
 
-def chatgpts(messages_list, model="gpt-4", temperature=0.7, max_tokens=2000, stop=None, max_messages=400, **kwargs) -> list:
+def chatgpts(messages_list, model="gpt-4", temperature=0.7, max_tokens=2000, stop=None, max_messages=400, seed=None, **kwargs) -> list:
     texts = []
     for i in range(0, len(messages_list), max_messages):
-        responses = asyncio.run(generate_from_openai_chat_completion(model=model, messages_list=messages_list[i: i + max_messages], temperature=temperature, max_tokens=max_tokens, top_p=1, stop=stop, **kwargs))
+        responses = asyncio.run(generate_from_openai_chat_completion(model=model, messages_list=messages_list[i: i + max_messages], temperature=temperature, max_tokens=max_tokens, top_p=1, stop=stop, seed=seed, **kwargs))
         texts.extend([x.choices[0].message.content for x in responses])
         # global completion_tokens, prompt_tokens
         # completion_tokens[model] += sum(x["usage"]["completion_tokens"] for x in responses if "usage" in x and "completion_tokens" in x["usage"])
@@ -131,7 +132,10 @@ def chatgpts_raw(messages_list, model="gpt-4", temperature=0.7, max_tokens=2000,
         # prompt_tokens[model] += sum(x["usage"]["prompt_tokens"] for x in responses if "usage" in x and "prompt_tokens" in x["usage"])
     return responses_all
 
-def claude(prompts, model="claude-3-sonnet-20240229", temperature=0.7, max_tokens=3000, stop=None, max_messages=400, system_prompt=None, **kwargs) -> list:
+def claude(prompts, model="claude-3-sonnet-20240229", temperature=0.7, max_tokens=3000, stop=None, max_messages=400, system_prompt=None, seed=None, **kwargs) -> list:
+    if seed is not None:
+        print(f"Warning: Claude backend does not support seed parameter (seed={seed}). "
+              "Variance will come from temperature sampling only.")
     texts = []
     if system_prompt is not None:
         messages_list = [[{'role': 'system', 'content': system_prompt},
@@ -384,6 +388,17 @@ def stop_vllm_server(process: subprocess.Popen = None):
         _vllm_server_process = None
 
 
+def check_vllm_server_health(port: int = 8000, base_url: str = "http://localhost") -> bool:
+    """Check if the vLLM server is alive and responding."""
+    import httpx
+    url = f"{base_url}:{port}/v1/models"
+    try:
+        response = httpx.get(url, timeout=10)
+        return response.status_code == 200
+    except Exception:
+        return False
+
+
 MINISTRAL_SYSTEM_PROMPT = """# HOW YOU SHOULD THINK AND ANSWER
 
 First draft your thinking process (inner monologue) until you arrive at a response. Format your response using Markdown, and use LaTeX for any mathematical equations. Write both your thoughts and the response in the same language as the input.
@@ -429,6 +444,7 @@ async def generate_from_vllm(
     max_tokens: int = 16000,
     base_url: str = "http://localhost:8000/v1",
     verbose: bool = False,
+    seed=None,
     **kwargs,
 ) -> List[Any]:
     """
@@ -441,12 +457,15 @@ async def generate_from_vllm(
 
     async def generate_single(messages):
         try:
-            response = await client.chat.completions.create(
+            create_kwargs = dict(
                 model=served_model,
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
+            if seed is not None:
+                create_kwargs['seed'] = seed
+            response = await client.chat.completions.create(**create_kwargs)
             return response
         except Exception as e:
             print(f"Error generating response: {e}")
@@ -454,6 +473,32 @@ async def generate_from_vllm(
 
     async_responses = [generate_single(messages) for messages in messages_list]
     responses = await tqdm_asyncio.gather(*async_responses, disable=not verbose)
+    return responses
+
+
+async def _generate_nemotron_batch(
+    prompts: List[str],
+    model: str,
+    base_url: str,
+    **kwargs,
+) -> List[Any]:
+    """Generate responses for Nemotron using async completions API."""
+    client = AsyncOpenAI(api_key="EMPTY", base_url=base_url)
+
+    async def generate_single(prompt):
+        try:
+            response = await client.completions.create(
+                model=model,
+                prompt=prompt,
+                **kwargs,
+            )
+            return response
+        except Exception as e:
+            print(f"Error generating Nemotron response: {e}")
+            return None
+
+    async_responses = [generate_single(p) for p in prompts]
+    responses = await tqdm_asyncio.gather(*async_responses)
     return responses
 
 
@@ -506,6 +551,7 @@ def vllm_local(
     system_prompt: str = None,
     max_messages: int = 400,
     verbose: bool = False,
+    seed=None,
     **kwargs,
 ) -> List[str]:
     """
@@ -537,43 +583,52 @@ def vllm_local(
         print("Using Nemotron chat template with enable_thinking=True")
         formatted_prompts = [_format_nemotron_prompt(p, model) for p in prompts]
 
+        nemotron_kwargs = dict(temperature=temperature, max_tokens=max_tokens)
+        if seed is not None:
+            nemotron_kwargs['seed'] = seed
+
         # Use SYNC client for single-item generation
         if len(prompts) == 1:
             client = OpenAI(api_key="EMPTY", base_url=full_base_url)
             try:
-                # Use completions API (not chat) since we pre-formatted the prompt
                 response = client.completions.create(
                     model=model,
                     prompt=formatted_prompts[0],
-                    temperature=temperature,
-                    max_tokens=max_tokens,
+                    **nemotron_kwargs,
                 )
                 if response and response.choices:
                     return [response.choices[0].text]
                 else:
                     return [""]
+            except (openai.APIConnectionError, ConnectionError) as e:
+                raise ConnectionError(f"vLLM server is unreachable: {e}") from e
             except Exception as e:
                 print(f"Error generating response: {e}")
                 return [""]
         else:
-            # Batch generation for Nemotron
+            # Async batch generation for Nemotron (parallel requests)
             texts = []
-            client = OpenAI(api_key="EMPTY", base_url=full_base_url)
-            for formatted_prompt in formatted_prompts:
-                try:
-                    response = client.completions.create(
+            for i in range(0, len(formatted_prompts), max_messages):
+                batch = formatted_prompts[i:i + max_messages]
+                responses = asyncio.run(
+                    _generate_nemotron_batch(
+                        prompts=batch,
                         model=model,
-                        prompt=formatted_prompt,
-                        temperature=temperature,
-                        max_tokens=max_tokens,
+                        base_url=full_base_url,
+                        **nemotron_kwargs,
                     )
-                    if response and response.choices:
-                        texts.append(response.choices[0].text)
+                )
+                num_failed = sum(1 for resp in responses if resp is None)
+                if num_failed == len(responses):
+                    raise ConnectionError(
+                        f"vLLM server returned no responses for entire batch of {len(responses)}. "
+                        "Server is likely dead."
+                    )
+                for resp in responses:
+                    if resp is not None and resp.choices:
+                        texts.append(resp.choices[0].text)
                     else:
                         texts.append("")
-                except Exception as e:
-                    print(f"Error generating response: {e}")
-                    texts.append("")
             return texts
 
     # Non-Nemotron models: use standard chat completions API
@@ -596,16 +651,23 @@ def vllm_local(
         client = OpenAI(api_key="EMPTY", base_url=full_base_url)
 
         try:
-            response = client.chat.completions.create(
+            create_kwargs = dict(
                 model=model,
                 messages=messages_list[0],
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
+            if seed is not None:
+                create_kwargs['seed'] = seed
+            response = client.chat.completions.create(**create_kwargs)
             if response and response.choices:
                 return [response.choices[0].message.content]
             else:
                 return [""]
+        except (openai.APIConnectionError, ConnectionError) as e:
+            raise ConnectionError(
+                f"vLLM server is unreachable: {e}"
+            ) from e
         except Exception as e:
             print(f"Error generating response: {e}")
             return [""]
@@ -622,9 +684,16 @@ def vllm_local(
                     max_tokens=max_tokens,
                     base_url=full_base_url,
                     verbose=verbose,
+                    seed=seed,
                     **kwargs,
                 )
             )
+            num_failed = sum(1 for resp in responses if resp is None)
+            if num_failed == len(responses):
+                raise ConnectionError(
+                    f"vLLM server returned no responses for entire batch of {len(responses)}. "
+                    "Server is likely dead."
+                )
             for resp in responses:
                 if resp is not None and resp.choices:
                     texts.append(resp.choices[0].message.content)
@@ -687,16 +756,20 @@ async def generate_answer_together(
     model: str,
     temperature: float,
     max_tokens: int,
+    seed: int = None,
 ) -> Any:
     """
     Send a prompt to Together AI API and get the answer with exponential backoff.
     """
-    response = await client.chat.completions.create(
+    create_kwargs = dict(
         model=model,
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,
     )
+    if seed is not None:
+        create_kwargs['seed'] = seed
+    response = await client.chat.completions.create(**create_kwargs)
     return response
 
 
@@ -706,6 +779,7 @@ async def generate_from_together(
     temperature: float = 0.6,
     max_tokens: int = 16000,
     verbose: bool = False,
+    seed=None,
     **kwargs,
 ) -> List[Any]:
     """
@@ -719,7 +793,7 @@ async def generate_from_together(
 
     async_responses = [
         asyncio.create_task(
-            generate_answer_together(messages, client, model, temperature, max_tokens)
+            generate_answer_together(messages, client, model, temperature, max_tokens, seed=seed)
         )
         for messages in messages_list
     ]
@@ -735,6 +809,7 @@ def together(
     system_prompt: str = None,
     max_messages: int = 400,
     verbose: bool = False,
+    seed=None,
     **kwargs,
 ) -> List[str]:
     """
@@ -775,6 +850,7 @@ def together(
                 temperature=temperature,
                 max_tokens=max_tokens,
                 verbose=verbose,
+                seed=seed,
                 **kwargs,
             )
         )
@@ -799,6 +875,7 @@ def _generate_single_together(
     temperature: float,
     max_tokens: int,
     system_prompt: str = None,
+    seed: int = None,
 ) -> Tuple[int, str]:
     """
     Generate a single response from Together AI API (synchronous, for use in ThreadPoolExecutor).
@@ -812,16 +889,20 @@ def _generate_single_together(
     else:
         messages = [{'role': 'user', 'content': prompt}]
 
+    create_kwargs = dict(
+        model=model,
+        messages=messages,
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+    if seed is not None:
+        create_kwargs['seed'] = seed
+
     # Retry with exponential backoff on rate limit errors
     max_retries = 10
     for attempt in range(max_retries):
         try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
+            response = client.chat.completions.create(**create_kwargs)
             if response and response.choices:
                 return (idx, response.choices[0].message.content)
             return (idx, "")
@@ -846,6 +927,7 @@ def together_streaming(
     num_workers: int = 8,
     on_result: Callable[[int, str, str], None] = None,
     verbose: bool = False,
+    seed: int = None,
 ) -> List[str]:
     """
     Generate responses using Together AI API with parallel workers.
@@ -883,7 +965,7 @@ def together_streaming(
         future_to_idx = {
             executor.submit(
                 _generate_single_together,
-                idx, prompt, client, model, temperature, max_tokens, system_prompt
+                idx, prompt, client, model, temperature, max_tokens, system_prompt, seed
             ): idx
             for idx, prompt in enumerate(prompts)
         }

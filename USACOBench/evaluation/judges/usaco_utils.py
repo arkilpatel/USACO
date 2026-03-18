@@ -159,22 +159,23 @@ def check_correctness(program: str, test_num: int, timeout: float, memory_limit:
     with open(input_file, 'r') as f:
         inp = f.read().strip()
 
-    with open(pred_file, 'r') as f:
-        pred = f.read().strip()
-    
+    if os.path.exists(pred_file):
+        with open(pred_file, 'r') as f:
+            pred = f.read().strip()
+    else:
+        # Subprocess crashed before writing output
+        pred = ""
+        if "passed" in result[0]:
+            result[0] = f"failed: no output produced on test {test_num}"
+
     with open(output_file, 'r') as f:
         output = f.read().strip()
 
-    # print(pred)
-    # print()
-    # print(output)
-    # print(pred == output)
-    # print(result)
     if "passed" in result[0] and pred != output:
-        # result[0] = f"wrong answer on test {test_num}"
         result[0] =  f"wrong answer.\nInput:\n{inp}\nPredicted output:\n{pred}\nCorrect output:\n{output}"
-    
-    os.remove(pred_file)
+
+    if os.path.exists(pred_file):
+        os.remove(pred_file)
 
     # convert to Result
     result_str = result[0]

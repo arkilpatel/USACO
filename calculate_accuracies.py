@@ -1,10 +1,13 @@
 import csv
-import os
+import math
 import re
 from pathlib import Path
 
 LOGS_DIR = Path(__file__).parent / "logs"
-OUTPUT_FILE = Path(__file__).parent / "scores.csv"
+SCORES_DIR = Path(__file__).parent / "scores"
+
+FIELDNAMES = ["name", "accuracy", "macro_average"]
+REVISIONS_PREFIX = "revisions_"
 
 
 def extract_model_name(dirname: str) -> str:
@@ -32,10 +35,107 @@ def parse_summary(summary_path: Path) -> dict | None:
     return {"accuracy": accuracy, "macro_average": macro_avg}
 
 
+def write_scores(output_path: Path, results: list[dict]):
+    """Write a list of result dicts to a scores CSV file."""
+    with open(output_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
+        writer.writeheader()
+        writer.writerows(results)
+    print(f"Wrote {len(results)} rows to {output_path}")
+    for r in results:
+        print(f"  {r['name']}: accuracy={r['accuracy']}%, macro_avg={r['macro_average']}%")
+
+
+def collect_seed_results(directory: Path, name: str) -> dict | None:
+    """Collect per-seed accuracy and macro_average from seed-* subdirectories.
+
+    Returns a dict with name, per-seed values, or None if no seeds found.
+    e.g. {"name": "model-x", "seed_42_accuracy": 9.77, "seed_42_macro_average": 13.81, ...}
+    """
+    result = {"name": name}
+    found_any = False
+    for seed_dir in sorted(directory.iterdir()):
+        if not seed_dir.is_dir() or not seed_dir.name.startswith("seed-"):
+            continue
+        summary = seed_dir / "summary.csv"
+        if not summary.exists():
+            continue
+        scores = parse_summary(summary)
+        if scores is None:
+            print(f"WARNING: could not parse {summary}")
+            continue
+        seed = seed_dir.name.removeprefix("seed-")
+        result[f"seed_{seed}_accuracy"] = scores["accuracy"]
+        result[f"seed_{seed}_macro_average"] = scores["macro_average"]
+        found_any = True
+    return result if found_any else None
+
+
+def write_seed_scores(output_path: Path, results: list[dict]):
+    """Write seed-aggregated scores CSV with per-seed columns and aggregates."""
+    # Collect all unique seed numbers
+    all_seeds: set[str] = set()
+    for r in results:
+        for k in r:
+            if k.startswith("seed_") and k.endswith("_accuracy"):
+                all_seeds.add(k.removeprefix("seed_").removesuffix("_accuracy"))
+    seeds = sorted(all_seeds, key=int)
+
+    # Build per-seed column pairs and compute aggregates
+    seed_cols = []
+    for s in seeds:
+        seed_cols.extend([f"seed_{s}_accuracy", f"seed_{s}_macro_average"])
+
+    for r in results:
+        acc_vals = [r[f"seed_{s}_accuracy"] for s in seeds if f"seed_{s}_accuracy" in r]
+        macro_vals = [r[f"seed_{s}_macro_average"] for s in seeds if f"seed_{s}_macro_average" in r]
+        n = len(acc_vals)
+        r["num_seeds"] = n
+        if n > 0:
+            acc_mean = sum(acc_vals) / n
+            macro_mean = sum(macro_vals) / n
+            r["mean_accuracy"] = round(acc_mean, 2)
+            r["mean_macro_average"] = round(macro_mean, 2)
+            if n > 1:
+                acc_var = sum((v - acc_mean) ** 2 for v in acc_vals) / (n - 1)
+                macro_var = sum((v - macro_mean) ** 2 for v in macro_vals) / (n - 1)
+                r["std_error_accuracy"] = round(math.sqrt(acc_var / n), 2)
+                r["std_error_macro_average"] = round(math.sqrt(macro_var / n), 2)
+            else:
+                r["std_error_accuracy"] = 0.0
+                r["std_error_macro_average"] = 0.0
+        else:
+            r["mean_accuracy"] = ""
+            r["mean_macro_average"] = ""
+            r["std_error_accuracy"] = ""
+            r["std_error_macro_average"] = ""
+
+    fieldnames = (
+        ["name"]
+        + seed_cols
+        + ["mean_accuracy", "std_error_accuracy", "mean_macro_average", "std_error_macro_average", "num_seeds"]
+    )
+    with open(output_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(results)
+    print(f"Wrote {len(results)} rows to {output_path}")
+    for r in results:
+        print(
+            f"  {r['name']}: acc={r['mean_accuracy']}% (se={r['std_error_accuracy']}%), "
+            f"macro={r['mean_macro_average']}% (se={r['std_error_macro_average']}%), n={r['num_seeds']}"
+        )
+
+
 def main():
+    SCORES_DIR.mkdir(exist_ok=True)
+
+    # --- Process top-level model directories ---
     results = []
     for entry in sorted(LOGS_DIR.iterdir()):
         if not entry.is_dir():
+            continue
+        if entry.name.startswith(REVISIONS_PREFIX):
             continue
         summary = entry / "summary.csv"
         if not summary.exists():
@@ -51,14 +151,62 @@ def main():
             "macro_average": scores["macro_average"],
         })
 
-    with open(OUTPUT_FILE, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["name", "accuracy", "macro_average"])
-        writer.writeheader()
-        writer.writerows(results)
+    write_scores(SCORES_DIR / "scores.csv", results)
 
-    print(f"Wrote {len(results)} rows to {OUTPUT_FILE}")
-    for r in results:
-        print(f"  {r['name']}: accuracy={r['accuracy']}%, macro_avg={r['macro_average']}%")
+    # --- Process top-level model directories (seed-aggregated) ---
+    seed_results = []
+    for entry in sorted(LOGS_DIR.iterdir()):
+        if not entry.is_dir():
+            continue
+        if entry.name.startswith(REVISIONS_PREFIX):
+            continue
+        model_name = extract_model_name(entry.name)
+        row = collect_seed_results(entry, model_name)
+        if row is not None:
+            seed_results.append(row)
+
+    if seed_results:
+        write_seed_scores(SCORES_DIR / "scores_seeds.csv", seed_results)
+
+    # --- Process revision directories ---
+    for entry in sorted(LOGS_DIR.iterdir()):
+        if not entry.is_dir():
+            continue
+        if not entry.name.startswith(REVISIONS_PREFIX):
+            continue
+        model_name = entry.name[len(REVISIONS_PREFIX):]
+        revision_results = []
+        for step_dir in sorted(entry.iterdir()):
+            if not step_dir.is_dir():
+                continue
+            summary = step_dir / "summary.csv"
+            if not summary.exists():
+                continue
+            scores = parse_summary(summary)
+            if scores is None:
+                print(f"WARNING: could not parse {summary}")
+                continue
+            revision_results.append({
+                "name": step_dir.name,
+                "accuracy": scores["accuracy"],
+                "macro_average": scores["macro_average"],
+            })
+
+        output_path = SCORES_DIR / f"{model_name}_scores.csv"
+        write_scores(output_path, revision_results)
+
+        # Seed-aggregated revision scores
+        revision_seed_results = []
+        for step_dir in sorted(entry.iterdir()):
+            if not step_dir.is_dir():
+                continue
+            row = collect_seed_results(step_dir, step_dir.name)
+            if row is not None:
+                revision_seed_results.append(row)
+
+        if revision_seed_results:
+            output_path = SCORES_DIR / f"{model_name}_scores_seeds.csv"
+            write_seed_scores(output_path, revision_seed_results)
 
 
 if __name__ == "__main__":
