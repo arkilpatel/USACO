@@ -3,8 +3,11 @@ import math
 import re
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+
 LOGS_DIR = Path(__file__).parent / "logs"
 SCORES_DIR = Path(__file__).parent / "scores"
+PLOT_DIR = SCORES_DIR / "plot_scores"
 
 FIELDNAMES = ["name", "accuracy", "macro_average"]
 REVISIONS_PREFIX = "revisions_"
@@ -127,8 +130,73 @@ def write_seed_scores(output_path: Path, results: list[dict]):
         )
 
 
+def plot_seed_scores(output_path: Path, results: list[dict], metric: str):
+    """Save a horizontal bar chart of mean ± std_error for each model.
+
+    metric should be 'accuracy' or 'macro_average'.
+    """
+    mean_key = f"mean_{metric}"
+    se_key = f"std_error_{metric}"
+    rows = [r for r in results if isinstance(r.get(mean_key), (int, float))]
+    if not rows:
+        return
+    rows = sorted(rows, key=lambda r: r[mean_key])
+
+    names = [r["name"] for r in rows]
+    means = [r[mean_key] for r in rows]
+    errors = [r.get(se_key) or 0.0 for r in rows]
+
+    fig, ax = plt.subplots(figsize=(10, max(4, 0.4 * len(names))))
+    ax.barh(names, means, xerr=errors, capsize=3, color="steelblue", ecolor="black")
+    ax.set_xlabel(f"{metric.replace('_', ' ').title()} (%)")
+    ax.set_title(f"USACO — {metric.replace('_', ' ').title()}")
+    ax.set_xlim(0, 100)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=150)
+    plt.close(fig)
+    print(f"Saved plot to {output_path}")
+
+
+def plot_revision_scores(output_path: Path, results: list[dict], metric: str, model_name: str):
+    """Save a scatter plot of mean ± std_error vs. step for revisions.
+
+    metric should be 'accuracy' or 'macro_average'.
+    """
+    mean_key = f"mean_{metric}"
+    se_key = f"std_error_{metric}"
+    rows = [r for r in results if isinstance(r.get(mean_key), (int, float))]
+    if not rows:
+        return
+
+    parsed = []
+    for r in rows:
+        m = re.search(r"(\d+)", r["name"])
+        if m:
+            parsed.append((int(m.group(1)), r[mean_key], r.get(se_key) or 0.0))
+    if not parsed:
+        return
+    parsed.sort(key=lambda t: t[0])
+
+    steps = [p[0] for p in parsed]
+    means = [p[1] for p in parsed]
+    errors = [p[2] for p in parsed]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.errorbar(steps, means, yerr=errors, fmt="o", capsize=4,
+                color="steelblue", ecolor="black", markersize=6)
+    ax.set_xlabel("Step")
+    ax.set_ylabel(f"{metric.replace('_', ' ').title()} (%)")
+    ax.set_title(f"{model_name} — {metric.replace('_', ' ').title()}")
+    ax.set_ylim(0, 100)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=150)
+    plt.close(fig)
+    print(f"Saved plot to {output_path}")
+
+
 def main():
     SCORES_DIR.mkdir(exist_ok=True)
+    PLOT_DIR.mkdir(exist_ok=True)
 
     # --- Process top-level model directories ---
     results = []
@@ -167,6 +235,8 @@ def main():
 
     if seed_results:
         write_seed_scores(SCORES_DIR / "scores_seeds.csv", seed_results)
+        plot_seed_scores(PLOT_DIR / "accuracy_scores.png", seed_results, "accuracy")
+        plot_seed_scores(PLOT_DIR / "macro_average_scores.png", seed_results, "macro_average")
 
     # --- Process revision directories ---
     for entry in sorted(LOGS_DIR.iterdir()):
@@ -207,6 +277,14 @@ def main():
         if revision_seed_results:
             output_path = SCORES_DIR / f"{model_name}_scores_seeds.csv"
             write_seed_scores(output_path, revision_seed_results)
+            plot_revision_scores(
+                PLOT_DIR / f"{model_name}_accuracy_scores.png",
+                revision_seed_results, "accuracy", model_name,
+            )
+            plot_revision_scores(
+                PLOT_DIR / f"{model_name}_macro_average_scores.png",
+                revision_seed_results, "macro_average", model_name,
+            )
 
 
 if __name__ == "__main__":

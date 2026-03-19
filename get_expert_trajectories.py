@@ -105,8 +105,10 @@ def seed_everything(seed: int) -> None:
     try:
         import torch
         torch.manual_seed(seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(seed)
+        # NOTE: do NOT call torch.cuda.manual_seed_all here — doing so before
+        # vLLM forks its worker processes initialises CUDA in the parent
+        # process, which causes "Cannot re-initialize CUDA in forked
+        # subprocess". vLLM manages GPU seeding itself via SamplingParams.seed.
     except ImportError:
         pass
 
@@ -163,6 +165,8 @@ def init_vllm(args: argparse.Namespace):
     }
     if "nvidia" in model_lower:
         llm_kwargs["mamba_ssm_cache_dtype"] = "float32"
+    if "minimax" in model_lower:
+        llm_kwargs["enable_expert_parallel"] = True
     if "ministral" in model_lower:
         llm_kwargs["tokenizer_mode"] = "mistral"
         llm_kwargs["config_format"] = "mistral"
